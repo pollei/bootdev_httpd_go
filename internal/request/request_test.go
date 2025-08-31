@@ -30,6 +30,48 @@ func (cr *chunkReader) Read(p []byte) (n int, err error) {
 
 	return n, nil
 }
+
+func TestScanToken(t *testing.T) {
+	adv, tok, err := scanToken([]byte("GET "), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 4)
+	assert.Equal(t, tok, []byte("GET"))
+
+	adv, tok, err = scanToken([]byte("GET\n"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 3)
+	assert.Equal(t, tok, []byte("GET"))
+
+	adv, tok, err = scanToken([]byte("GET"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 0)
+
+}
+
+func TestScanAsciiPrintable(t *testing.T) {
+	adv, tok, err := scanAsciiPrintable([]byte("/ "), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 2)
+	assert.Equal(t, tok, []byte("/"))
+
+	adv, tok, err = scanAsciiPrintable([]byte("/\n"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 1)
+	assert.Equal(t, tok, []byte("/"))
+
+	adv, _, err = scanAsciiPrintable([]byte("/coffee"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 0)
+	//assert.Equal(t, tok, []byte("/coffee"))
+
+}
+
+func TestScanCrLf(t *testing.T) {
+	adv, _, err := scanCrLf([]byte("\r\n"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 2)
+}
+
 func TestRequestLineParse(t *testing.T) {
 	assert.Equal(t, "TheTestagen", "TheTestagen")
 	// Test: Good GET Request line

@@ -81,10 +81,10 @@ func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 			continue
 		}
 		if isWhitespaceByte(currByte) {
-			return advIndx, data[0:advIndx], nil
+			return advIndx + 1, data[0:advIndx], nil
 		}
 		if currByte == '\n' {
-			return advIndx - 1, data[0:advIndx], nil
+			return advIndx, data[0:advIndx], nil
 		}
 		return 0, nil, errors.New("invalid token")
 	}
@@ -100,10 +100,10 @@ func scanAsciiPrintable(data []byte, atEOF bool) (advance int, token []byte, err
 			continue
 		}
 		if isWhitespaceByte(currByte) {
-			return advIndx, data[0:advIndx], nil
+			return advIndx + 1, data[0:advIndx], nil
 		}
 		if currByte == '\n' {
-			return advIndx - 1, data[0:advIndx], nil
+			return advIndx, data[0:advIndx], nil
 		}
 		return 0, nil, errors.New("invalid printable")
 	}
