@@ -42,9 +42,14 @@ func TestScanToken(t *testing.T) {
 	assert.Equal(t, adv, 3)
 	assert.Equal(t, tok, []byte("GET"))
 
-	adv, tok, err = scanToken([]byte("GET"), false)
+	adv, _, err = scanToken([]byte("GET"), false)
 	require.NoError(t, err)
 	assert.Equal(t, adv, 0)
+
+	adv, tok, err = scanToken([]byte("GET"), true)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 3)
+	assert.Equal(t, tok, []byte("GET"))
 
 }
 
@@ -64,12 +69,20 @@ func TestScanAsciiPrintable(t *testing.T) {
 	assert.Equal(t, adv, 0)
 	//assert.Equal(t, tok, []byte("/coffee"))
 
+	adv, tok, err = scanAsciiPrintable([]byte("/coffee"), true)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 7)
+	assert.Equal(t, tok, []byte("/coffee"))
+
 }
 
 func TestScanCrLf(t *testing.T) {
 	adv, _, err := scanCrLf([]byte("\r\n"), false)
 	require.NoError(t, err)
 	assert.Equal(t, adv, 2)
+	adv, _, err = scanCrLf([]byte("\n"), false)
+	require.NoError(t, err)
+	assert.Equal(t, adv, 1)
 }
 
 func TestRequestLineParse(t *testing.T) {

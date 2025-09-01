@@ -88,6 +88,9 @@ func scanToken(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		}
 		return 0, nil, errors.New("invalid token")
 	}
+	if atEOF && advIndx >= dataSz {
+		return advIndx, data[0:advIndx], nil
+	}
 	return 0, nil, nil
 }
 
@@ -106,6 +109,9 @@ func scanAsciiPrintable(data []byte, atEOF bool) (advance int, token []byte, err
 			return advIndx, data[0:advIndx], nil
 		}
 		return 0, nil, errors.New("invalid printable")
+	}
+	if atEOF && advIndx >= dataSz {
+		return advIndx, data[0:advIndx], nil
 	}
 	return 0, nil, nil
 }
@@ -127,8 +133,16 @@ func scanCrLf(data []byte, atEOF bool) (advance int, token []byte, err error) {
 func (r *Request) parse(data []byte) (int, error) {
 	return 0, nil
 }
+func (r *Request) isParseDone() bool {
+	return r.state == RequestProgressDone
+}
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
+	ret := Request{}
+	return &ret, nil
+}
+
+func RequestFromReader0(reader io.Reader) (*Request, error) {
 	rawBuf, err := io.ReadAll(reader)
 	if err != nil {
 		return nil, &RequestError{Code: "500", Err: err}
