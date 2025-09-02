@@ -33,6 +33,13 @@ type RequestLine struct {
 	Method        string
 }
 
+type ChunkBuf struct {
+	ByteArr []byte
+	Start   int
+	End     int
+	AtEof   bool
+}
+
 // https://go.dev/blog/go1.13-errors
 // https://pkg.go.dev/errors
 // 505 Version not supported
@@ -139,6 +146,8 @@ func (r *Request) isParseDone() bool {
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
 	ret := Request{}
+	cb := ChunkBuf{}
+	cb.ByteArr = make([]byte, 5)
 	return &ret, nil
 }
 
