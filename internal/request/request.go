@@ -37,6 +37,7 @@ type ChunkBuf struct {
 	ByteArr []byte
 	Start   int
 	End     int
+	Cap     int
 	AtEof   bool
 }
 
@@ -137,7 +138,19 @@ func scanCrLf(data []byte, atEOF bool) (advance int, token []byte, err error) {
 	return 0, nil, nil
 }
 
-func (r *Request) parse(data []byte) (int, error) {
+func (r *Request) parse(cb ChunkBuf) (int, error) {
+	buf := cb.ByteArr[cb.Start:cb.End]
+	switch r.state {
+	case RequestProgressNone:
+		scanToken(buf, cb.AtEof)
+	case RequestProgressMethod:
+		scanToken(buf, cb.AtEof)
+	case RequestProgressTarget:
+		scanToken(buf, cb.AtEof)
+	case RequestProgressProtocol:
+		scanToken(buf, cb.AtEof)
+
+	}
 	return 0, nil
 }
 func (r *Request) isParseDone() bool {
@@ -146,8 +159,21 @@ func (r *Request) isParseDone() bool {
 
 func RequestFromReader(reader io.Reader) (*Request, error) {
 	ret := Request{}
-	cb := ChunkBuf{}
-	cb.ByteArr = make([]byte, 5)
+	cb := ChunkBuf{Cap: 5}
+	cb.ByteArr = make([]byte, cb.Cap)
+
+	for !ret.isParseDone() && !cb.AtEof {
+		n, err := reader.Read(cb.ByteArr[cb.End:cb.Cap])
+		if err == io.EOF {
+			cb.AtEof = true
+		} else if err != nil {
+			return nil, err
+		}
+		cb.End += n
+		adv, err := ret.parse(cb)
+		cb.Start += adv
+
+	}
 	return &ret, nil
 }
 
